@@ -1,150 +1,158 @@
-### **Go Viewport Pager - Usage Documentation**  
-A simple terminal-based viewport pager built using [Bubble Tea](https://github.com/charmbracelet/bubbletea). This allows users to scroll through text in a styled viewport with exit instructions.
+## **📄 README.md (Updated Usage Documentation)**
+Here’s a **clean and well-structured README** you can use:
+
+```markdown
+# Terminal Viewport Pager
+
+A terminal-based **scrollable text viewer** built with [Bubble Tea](https://github.com/charmbracelet/bubbletea) and [Lip Gloss](https://github.com/charmbracelet/lipgloss).  
+
+Supports:
+- **File Viewing** (`pager file.txt`)
+- **Piped Input** (`cat file.txt | pager`)
+- **Direct Usage as a Go Package** (`viewportpager.StartPager(content, title)`)
 
 ---
 
-## **Installation**  
-First, install the package in your Go project:
-
+## **📦 Installation**
+### **1. Install the CLI**
+First, install the CLI globally:
 ```sh
-go get github.com/yourusername/yourrepo@latest
+go install github.com/grantis/pagercli/cmd/pager@latest
+```
+Now you can run:
+```sh
+pager file.txt
 ```
 
 ---
 
-## **Usage**
+### **2. Using `viewportpager` as a Package**
+If you want to use this as a **Go package** in your own projects:
+```sh
+go get github.com/grantis/viewportpager
+```
 
-### **Quick Start**
-You can display text in a terminal viewport by calling the `StartPager` function:
-
+Then, in your Go code:
 ```go
 package main
 
 import (
-	"fmt"
-	"os"
-
-	view "github.com/grantis/custom-viewport"
+    "log"
+    "github.com/grantis/viewportpager"
 )
 
 func main() {
-	content := "Hello, this is a quick terminal viewport!"
-	err := yourrepo.StartPager(content)
-	if err != nil {
-		fmt.Println("Error starting pager:", err)
-		os.Exit(1)
-	}
+    content := "Hello, this is a terminal pager example!"
+    title := "Demo Pager"
+
+    err := viewportpager.StartPager(content, title)
+    if err != nil {
+        log.Fatal(err)
+    }
 }
 ```
 
-This will display the text inside a scrollable terminal viewport.
-
----
-
-## **Usage with Piped Input**
-You can also use the program to accept input from stdin:
-
+Run it:
 ```sh
-cat somefile.txt | go run main.go
+go run main.go
 ```
 
-Or directly from a command:
+---
 
+## **🚀 Features**
+✅ **Scrollable text viewport**  
+✅ **Supports keyboard & mouse input**  
+✅ **Works with both files and piped input**  
+✅ **Reusable as a Go package**  
+
+---
+
+## **📌 CLI Usage**
+### **View a File**
 ```sh
-echo "This is a test message" | go run main.go
+pager file.txt
+```
+
+### **View Piped Input**
+```sh
+cat file.txt | pager
+```
+
+### **Run Without Input**
+```sh
+pager
+```
+(_Displays a default welcome message._)
+
+---
+
+## **⌨️ Controls**
+| Key        | Action               |
+|------------|----------------------|
+| `↑` / `↓`  | Scroll up/down       |
+| `PgUp` / `PgDn` | Fast scroll |
+| `q` / `esc` / `ctrl+c` | Quit |
+
+---
+
+## **🔧 Development**
+### **1. Clone the Repository**
+```sh
+git clone https://github.com/grantis/terminal-viewport.git
+cd terminal-viewport
+```
+
+### **2. Install Dependencies**
+```sh
+cd viewportpager
+go mod tidy
+cd ../pagercli
+go mod tidy
+```
+
+### **3. Run the CLI Locally**
+```sh
+go run cmd/pager/main.go file.txt
+```
+
+### **4. Install the CLI**
+```sh
+go install ./cmd/pager
+```
+Now you can run:
+```sh
+pager file.txt
+```
+
+
+---
+
+## **📜 License**
+MIT License © 2024 [Grant Rigby](https://github.com/grantis)
 ```
 
 ---
 
-## **Keybindings**
-| Key        | Action                              |
-|------------|-------------------------------------|
-| `↑` / `↓`  | Scroll up/down                     |
-| `PgUp` / `PgDn` | Scroll up/down faster      |
-| `q` / `esc` / `ctrl+c` | Quit the viewport |
+### **✅ Next Steps**
+1. **Replace `grantis` with your GitHub username**.
+2. **Push this updated README to GitHub**:
+   ```sh
+   git add README.md
+   git commit -m "Updated usage documentation"
+   git push origin main
+   ```
+3. **Start Using It!**
+   ```sh
+   pager file.txt
+   cat file.txt | pager
+   ```
 
 ---
 
-## **API Reference**
-### **StartPager(content string)**
-Displays the given `content` in a terminal viewport.
+### **🎯 Now Your Project is Fully Ready!**
+- ✅ **CLI is globally installable**
+- ✅ **Library is importable in other projects**
+- ✅ **Documentation is complete**
+- ✅ **Code is modular & clean**
 
-#### **Parameters**
-- `content` *(string)*: The text to display inside the viewport.
-
-#### **Returns**
-- `error`: Returns an error if the pager fails to initialize.
-
-#### **Example**
-```go
-err := view.StartPager("Hello World!")
-if err != nil {
-    log.Fatal(err)
-}
-```
-
----
-
-## **Advanced Usage**
-If you want to integrate this with another CLI application, you can modify the text dynamically before passing it to `StartPager()`.
-
-```go
-package main
-
-import (
-	"fmt"
-	"io"
-	"os"
-
-	"github.com/yourusername/yourrepo"
-)
-
-func main() {
-	var content string
-
-	// Check if data is piped in
-	fi, err := os.Stdin.Stat()
-	if err != nil {
-		fmt.Println("could not stat STDIN:", err)
-		os.Exit(1)
-	}
-
-	if fi.Mode()&os.ModeCharDevice == 0 {
-		// Read from stdin
-		bytes, err := io.ReadAll(os.Stdin)
-		if err != nil {
-			fmt.Println("could not read from STDIN:", err)
-			os.Exit(1)
-		}
-		content = string(bytes)
-	} else {
-		// Default text if no input is piped
-		content = "Welcome to the Go Viewport Pager!"
-	}
-
-	// Start the pager
-	err = yourrepo.StartPager(content)
-	if err != nil {
-		fmt.Println("Error:", err)
-		os.Exit(1)
-	}
-}
-```
-
----
-
-## **Contributing**
-1. Fork the repository.
-2. Create a feature branch: `git checkout -b my-new-feature`
-3. Commit changes: `git commit -am 'Add new feature'`
-4. Push the branch: `git push origin my-new-feature`
-5. Open a Pull Request.
-
----
-
-## **License**
-This project is licensed under the MIT License.
-
----
-
-This documentation provides everything needed to install, use, and contribute to your terminal viewport package. Let me know if you want any refinements! 🚀
+**What’s next?** Do you want to add **RSS support**, **themes**, or **new features**? 🚀🔥

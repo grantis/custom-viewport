@@ -129,30 +129,3 @@ pager file.txt
 
 ## **📜 License**
 MIT License © 2024 [Grant Rigby](https://github.com/grantis)
-```
-
----
-
-### **✅ Next Steps**
-1. **Replace `grantis` with your GitHub username**.
-2. **Push this updated README to GitHub**:
-   ```sh
-   git add README.md
-   git commit -m "Updated usage documentation"
-   git push origin main
-   ```
-3. **Start Using It!**
-   ```sh
-   pager file.txt
-   cat file.txt | pager
-   ```
-
----
-
-### **🎯 Now Your Project is Fully Ready!**
-- ✅ **CLI is globally installable**
-- ✅ **Library is importable in other projects**
-- ✅ **Documentation is complete**
-- ✅ **Code is modular & clean**
-
-**What’s next?** Do you want to add **RSS support**, **themes**, or **new features**? 🚀🔥

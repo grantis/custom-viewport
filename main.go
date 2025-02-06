@@ -12,21 +12,31 @@ import (
 )
 
 var (
-	titleStyle = func() lipgloss.Style {
-		b := lipgloss.RoundedBorder()
-		b.Right = "├"
-		return lipgloss.NewStyle().BorderStyle(b).Padding(0, 1)
-	}()
+	// Header Styling
+	titleStyle = lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color("229")).
+			Background(lipgloss.Color("63")).
+			Padding(0, 2).
+			BorderStyle(lipgloss.RoundedBorder())
 
-	infoStyle = func() lipgloss.Style {
-		b := lipgloss.RoundedBorder()
-		b.Left = "┤"
-		return titleStyle.BorderStyle(b)
-	}()
+	// Footer Styling
+	footerStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("229")).
+			Background(lipgloss.Color("63")).
+			Padding(0, 2).
+			BorderStyle(lipgloss.RoundedBorder())
+
+	// Scroll Percentage Styling
+	infoStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("229")).
+			Background(lipgloss.Color("63")).
+			Padding(0, 1)
 )
 
 type model struct {
 	content  string
+	title    string
 	ready    bool
 	viewport viewport.Model
 }
@@ -36,24 +46,18 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var (
-		cmd  tea.Cmd
-		cmds []tea.Cmd
-	)
-
+	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if k := msg.String(); k == "ctrl+c" || k == "q" || k == "esc" {
 			return m, tea.Quit
 		}
-
 	case tea.WindowSizeMsg:
 		headerHeight := lipgloss.Height(m.headerView())
 		footerHeight := lipgloss.Height(m.footerView())
 		verticalMarginHeight := headerHeight + footerHeight
 
 		if !m.ready {
-			// Initialize the viewport once we know the window size.
 			m.viewport = viewport.New(msg.Width, msg.Height-verticalMarginHeight)
 			m.viewport.YPosition = headerHeight
 			m.viewport.SetContent(m.content)
@@ -64,33 +68,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	// Update the viewport with the current message (for scrolling, etc.)
 	m.viewport, cmd = m.viewport.Update(msg)
-	cmds = append(cmds, cmd)
-
-	return m, tea.Batch(cmds...)
+	return m, cmd
 }
 
 func (m model) View() string {
 	if !m.ready {
 		return "\n  Initializing..."
 	}
-	// The view consists of a header, the viewport content, and a footer.
 	return fmt.Sprintf("%s\n%s\n%s", m.headerView(), m.viewport.View(), m.footerView())
 }
 
 func (m model) headerView() string {
-	title := titleStyle.Render("Mr. Pager")
+	title := titleStyle.Render(m.title)
 	line := strings.Repeat("─", max(0, m.viewport.Width-lipgloss.Width(title)))
 	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
 }
 
 func (m model) footerView() string {
-	// Exit help text to show the user how to exit the pager.
-	exitHelp := infoStyle.Render("Press q, esc, or ctrl+c to exit")
-	// Show the scroll percentage.
+	exitHelp := footerStyle.Render("Press Q / Esc to exit | ↑ / ↓ to scroll")
 	scrollInfo := infoStyle.Render(fmt.Sprintf("%3.f%%", m.viewport.ScrollPercent()*100))
-	// Fill the remaining space with a horizontal line.
 	remaining := max(0, m.viewport.Width-lipgloss.Width(exitHelp)-lipgloss.Width(scrollInfo))
 	line := strings.Repeat("─", remaining)
 	return lipgloss.JoinHorizontal(lipgloss.Center, exitHelp, line, scrollInfo)
@@ -103,34 +100,56 @@ func max(a, b int) int {
 	return b
 }
 
+// StartPager initializes the pager with content and title.
+func StartPager(content, title string) error {
+	p := tea.NewProgram(
+		model{content: content, title: title},
+		tea.WithAltScreen(),
+		tea.WithMouseCellMotion(),
+	)
+
+	_, err := p.Run()
+	return err
+}
+
 func main() {
-	var content []byte
-	var err error
+	var content, title string
 
-	// Check if there is piped input by examining os.Stdin.
-	fi, err := os.Stdin.Stat()
-	if err != nil {
-		fmt.Println("could not stat STDIN:", err)
-		os.Exit(1)
-	}
-
-	// Read from STDIN if data is being piped in.
-	if fi.Mode()&os.ModeCharDevice == 0 {
-		content, err = io.ReadAll(os.Stdin)
+	// Check if a file argument is provided
+	if len(os.Args) > 1 {
+		filename := os.Args[1]
+		data, err := os.ReadFile(filename)
 		if err != nil {
-			fmt.Println("could not read from STDIN:", err)
+			fmt.Println("Could not read file:", err)
 			os.Exit(1)
+		}
+		content = string(data)
+		title = filename // Set filename as the title
+	} else {
+		// Check if piped input exists
+		fi, err := os.Stdin.Stat()
+		if err != nil {
+			fmt.Println("Could not stat STDIN:", err)
+			os.Exit(1)
+		}
+
+		if fi.Mode()&os.ModeCharDevice == 0 {
+			// Read from stdin
+			bytes, err := io.ReadAll(os.Stdin)
+			if err != nil {
+				fmt.Println("Could not read from STDIN:", err)
+				os.Exit(1)
+			}
+			content = string(bytes)
+			title = "Piped Input" // Generic title for piped content
+		} else {
+			content = "Welcome to the Go Viewport Pager!"
+			title = "Go View Pager"
 		}
 	}
 
-	p := tea.NewProgram(
-		model{content: string(content)},
-		tea.WithAltScreen(),       // use the full terminal (alternate screen buffer)
-		tea.WithMouseCellMotion(), // enable mouse support
-	)
-
-	if _, err := p.Run(); err != nil {
-		fmt.Println("could not run program:", err)
+	if err := StartPager(content, title); err != nil {
+		fmt.Println("Error:", err)
 		os.Exit(1)
 	}
 }

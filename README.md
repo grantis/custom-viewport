@@ -1,7 +1,3 @@
-## **📄 README.md (Updated Usage Documentation)**
-Here’s a **clean and well-structured README** you can use:
-
-```markdown
 # Terminal Viewport Pager
 
 A terminal-based **scrollable text viewer** built with [Bubble Tea](https://github.com/charmbracelet/bubbletea) and [Lip Gloss](https://github.com/charmbracelet/lipgloss).  
